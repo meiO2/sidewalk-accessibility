@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { assessDetections, buildAssessmentDisclaimer, type Detection } from "@/lib/assessment";
 
-const DEFAULT_INFERENCE_URL = "http://localhost:8000/api/infer";
+const DEFAULT_INFERENCE_URL = "/api/infer";
 const CLASS_COLORS: Record<string, string> = {
   pothole: "#ef4444",
   distressed: "#f97316",
