@@ -24,7 +24,7 @@ npm install
 2. Install the Python inference dependencies:
 
 ```bash
-python -m pip install -r requirement.txt
+python -m pip install -r requirements.txt
 ```
 
 3. Copy the environment template if needed:
@@ -39,7 +39,7 @@ copy .env.example .env.local
 python server.py
 ```
 
-For a deployed frontend, configure `FRONTEND_ORIGINS` on the Python service as a comma-separated list of allowed frontend origins (for example, your Vercel production URL). Local development already allows `http://localhost:3000` and `http://127.0.0.1:3000`.
+For a deployed frontend, host the FastAPI inference service separately and set `INFERENCE_API_URL` in the Vercel project to its full `/api/infer` URL (for example, `https://your-backend.example.com/api/infer`). The Next.js `/api/infer` route proxies frames to that service, so browser CORS configuration is not needed for this path. If calling the Python service directly from the browser using `NEXT_PUBLIC_INFERENCE_URL`, configure `FRONTEND_ORIGINS` on the Python service with the Vercel origin.
 
 5. Start the Next.js app:
 
@@ -84,16 +84,9 @@ The detected class names are:
 
 ## Deployment note for Vercel
 
-This project is implemented so it can run locally with a Python FastAPI-compatible backend and a Next.js frontend. However, the full YOLO inference stack is not a good fit for a Vercel serverless Python function in the same deployment bundle.
+The Next.js deployment does not expose `api/infer.py` as a Python function: the Next.js framework handles requests for the project. The Next.js route at `/api/infer` therefore proxies to a separately deployed FastAPI service. Set `INFERENCE_API_URL` in Vercel to the complete backend inference URL and redeploy; without it, the route returns a visible `503` configuration error instead of silently appearing to return no detections.
 
-### Why it is not a safe Vercel-only deployment
-
-- Vercel Python functions run in a read-only filesystem with writable `/tmp` scratch space only.
-- The runtime supports Python dependencies, but heavy model packages such as `torch`, `ultralytics`, `opencv`, and large inference frameworks can exceed practical bundle and cold-start constraints.
-- This project’s trained model file is 5.47 MB, and the combined dependency footprint with PyTorch/Ultralytics is much larger than a lightweight serverless function should carry.
-- The platform also enforces tight serverless execution characteristics and is better suited for lightweight web APIs than GPU-like local CV inference workloads.
-
-The app therefore uses a local Python backend as the closest working architecture. For production, the recommended alternative is: keep the Next.js frontend on Vercel, and host the inference service on a service with a dedicated Python environment such as Render, Railway, Fly.io, or a containerized Cloud Run/VM deployment. The model itself remains the same; it is not replaced.
+Run the Python service on a host that supports the project's model dependencies, such as Render, Railway, Fly.io, or a containerized Cloud Run/VM deployment. Verify that `https://your-backend.example.com/health` reports `status: "ok"` and the model's class names before setting the Vercel environment variable.
 
 ## Running the backend manually
 

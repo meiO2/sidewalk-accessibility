@@ -111,7 +111,17 @@ app.add_middleware(
 
 @app.get("/health")
 def health_check():
-    return {"status": "ok", "model": str(MODEL_PATH)}
+    try:
+        model = get_model()
+    except Exception as exc:
+        logger.exception("Inference service health check failed to load the model.")
+        raise HTTPException(status_code=503, detail="The trained YOLO model is not ready.") from exc
+
+    return {
+        "status": "ok",
+        "model": str(MODEL_PATH),
+        "class_names": list(model.names.values()),
+    }
 
 
 @app.post("/api/infer")
