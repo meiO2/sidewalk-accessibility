@@ -86,6 +86,8 @@ The detected class names are:
 
 The Next.js deployment does not expose `api/infer.py` as a Python function: the Next.js framework handles requests for the project. The Next.js route at `/api/infer` therefore proxies to a separately deployed FastAPI service. Set `INFERENCE_API_URL` in Vercel to the complete backend inference URL and redeploy; without it, the route returns a visible `503` configuration error instead of silently appearing to return no detections.
 
+The root `.vercelignore` excludes the Python service, its model, and `requirements.txt` from the frontend deployment. Keep these files in the repository for the separate Python host; do not remove the Python dependencies from that backend's deployment.
+
 Run the Python service on a host that supports the project's model dependencies, such as Render, Railway, Fly.io, or a containerized Cloud Run/VM deployment. Verify that `https://your-backend.example.com/health` reports `status: "ok"` and the model's class names before setting the Vercel environment variable.
 
 ## Running the backend manually
